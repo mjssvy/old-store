@@ -1,0 +1,25 @@
+# Base image, even version for production
+FROM node:20-alpine3.17 AS builder
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the package.json and yarn.lock files
+COPY ./shopapp-angular /app
+COPY ./shopapp-angular/yarn.lock /app
+COPY ./shopapp-angular/package.json /app
+
+# Install Angular CLI globally
+RUN npm install -g @angular/cli
+
+# Install dependencies using yarn
+RUN yarn install --frozen-lockfile
+
+# RUN yarn build:production
+
+# Expose port 4200
+EXPOSE 4200
+
+# CMD to serve the Angular app
+
+CMD ["ng", "serve", "--host", "0.0.0.0"]

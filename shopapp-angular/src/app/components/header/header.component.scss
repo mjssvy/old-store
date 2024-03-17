@@ -1,0 +1,89 @@
+/* Add this CSS to your project's stylesheet */
+@import '../../styles/shared-styles.scss';
+
+
+
+header {
+    position: fixed;
+    padding-top: 0px;
+    width: 100%;
+    height: 11%;
+    background-color: #fff;
+    z-index: 1000;
+    padding: 18px 0;
+    text-align: center; /* Căn giữa các văn bản trong header */
+    box-shadow: 0 .9rem 1rem rgba(0,0,0,.1);
+
+}
+
+.navbar {
+    background-color: #fff !important;
+    padding-top: 0px;
+    height: 115%;
+}
+
+.navbar .container {
+    background-color: rgba(211, 65, 65, 0) !important;
+    justify-content: center;
+}
+
+.navbar-nav .nav-link:hover {
+    background-color: lightblue !important;
+}
+
+.navbar .container .navbar-brand {
+    color: rgb(251, 251, 252);
+}
+
+.navbar .container .navbar-nav .nav-link {
+    color: rgb(173, 178, 203);
+    border-radius: 18px;
+    padding: 12px 16px;
+    font-size: 20px;
+}
+
+.navbar .container .navbar-nav .nav-link.active {
+    background-color: $shopapp-color !important;
+    color: white !important;
+}
+.logo {
+    margin-left: auto; /* Đẩy phần tử sang phải cùng */
+    margin-right: 20px; /* Khoảng cách giữa logo và phần tử cuối cùng */
+    font-size: 3rem;
+    color: #333;
+    font-weight: bolder;
+    text-decoration: none;
+    
+}
+
+.nav-item.active {
+    background-color: $shopapp-color !important;
+    color: white !important;
+}
+
+/* CSS thêm cho popover */
+.popover-list {
+    padding: 10px;
+}
+
+.popover-body {
+    padding: 0px;
+}
+
+.popover-item {
+    display: block;
+    margin-bottom: 5px;
+    text-decoration: none;
+    color: #333;
+}
+
+.popover-item:hover {
+    background-color: #f0f0f0;
+    color: $shopapp-color;    
+}
+.collapse{
+    
+    // background-color: red;
+    padding-left: 250px;
+    
+}
