@@ -25,8 +25,15 @@ public class TestSelenium {
         driver.manage().window().maximize();
 
         // Điều hướng đến trang web
-        driver.get("http://54.179.160.55:4200/login/");
-
+        driver.get("http://54.169.95.179:4200/");
+        try {
+            Thread.sleep(2000); // Chờ 2 giây
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+       // Điều hướng đến trang đăng nhập từ trang chủ
+        driver.findElement(By.cssSelector("a.nav-link[routerLink='/login']")).click();
+        //Điền thông tin đăng nhập
         driver.findElement(By.id("phoneNumber")).clear();
         driver.findElement(By.id("phoneNumber")).sendKeys("123456789");
 
