@@ -135,7 +135,30 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>
 		</dependency>
-	</dependencies>
+	
+   <dependency>
+     <groupId>com.webank</groupId>
+     <artifactId>weidentity-contract-java</artifactId>
+     <version>1.1.0</version>
+   </dependency>
+   <dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-test</artifactId>
+    <version>5.5.1</version>
+    <scope>test</scope>
+</dependency>
+   <dependency>
+     <groupId>com.webank</groupId>
+     <artifactId>weidentity-contract-java</artifactId>
+     <version>1.1.0</version>
+   </dependency>
+ 
+   <dependency>
+     <groupId>com.webank</groupId>
+     <artifactId>weidentity-contract-java</artifactId>
+     <version>1.1.0</version>
+   </dependency>
+ </dependencies>
 	<build>
 		<plugins>
 			<plugin>

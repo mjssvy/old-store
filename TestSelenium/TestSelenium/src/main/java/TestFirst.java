@@ -5,8 +5,15 @@
 
 /**
  *
- * @author ASUS
+ * author ASUS
  */
 public class TestFirst {
     
+    public TestFirst() {
+        // Add any necessary initialization code here
+    }
+    
+    public void performTest() {
+        // Add your test code here
+    }
 }
