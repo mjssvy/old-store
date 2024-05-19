@@ -20,9 +20,9 @@ public class ProductRedisService implements IProductRedisService{
     private final ObjectMapper redisObjectMapper;
     @Value("${spring.data.redis.use-redis-cache}")
     private boolean useRedisCache;
-    private String getKeyFrom(String keyword,
-                       Long categoryId,
-                       PageRequest pageRequest) {
+    public String getKeyFrom(String keyword,
+                             Long categoryId,
+                             PageRequest pageRequest) {
         int pageNumber = pageRequest.getPageNumber();
         int pageSize = pageRequest.getPageSize();
         Sort sort = pageRequest.getSort();
@@ -63,4 +63,5 @@ public class ProductRedisService implements IProductRedisService{
         String json = redisObjectMapper.writeValueAsString(productResponses);
         redisTemplate.opsForValue().set(key, json);
     }
+
 }

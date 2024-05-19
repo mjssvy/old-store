@@ -50,9 +50,9 @@ public class UserService implements IUserService{
         Role role =roleRepository.findById(userDTO.getRoleId())
                 .orElseThrow(() -> new DataNotFoundException(
                         localizationUtils.getLocalizedMessage(MessageKeys.ROLE_DOES_NOT_EXISTS)));
-        if(role.getName().toUpperCase().equals(Role.ADMIN)) {
-            throw new PermissionDenyException("Không được phép đăng ký tài khoản Admin");
-        }
+//        if(role.getName().toUpperCase().equals(Role.ADMIN)) {
+//            throw new PermissionDenyException("Không được phép đăng ký tài khoản Admin");
+//        }
         //convert from userDTO => user
         User newUser = User.builder()
                 .fullName(userDTO.getFullName())
@@ -102,6 +102,8 @@ public class UserService implements IUserService{
         }
         */
         if(!optionalUser.get().isActive()) {
+            String localizedMessage = localizationUtils.getLocalizedMessage(MessageKeys.WRONG_PHONE_PASSWORD);
+            System.out.println("Localized Message: " + localizedMessage);
             throw new DataNotFoundException(localizationUtils.getLocalizedMessage(MessageKeys.USER_IS_LOCKED));
         }
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
