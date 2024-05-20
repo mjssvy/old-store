@@ -13,7 +13,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
  *
  * @author ASUS
  */
-public class TestSelenium {
+public class TestSeleniumLogin {
 
     private static WebDriver driver;
 
@@ -25,7 +25,7 @@ public class TestSelenium {
         driver.manage().window().maximize();
 
         // Điều hướng đến trang web
-        driver.get("http://54.169.95.179:4200/");
+        driver.get("http://52.221.229.25:4200/");
         try {
             Thread.sleep(2000); // Chờ 2 giây
         } catch (InterruptedException e) {
