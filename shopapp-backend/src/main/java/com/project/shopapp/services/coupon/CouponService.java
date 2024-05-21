@@ -28,7 +28,7 @@ public class CouponService implements ICouponService{
         return finalAmount;
     }
 
-    private double calculateDiscount(Coupon coupon, double totalAmount) {
+    public double calculateDiscount(Coupon coupon, double totalAmount) {
         List<CouponCondition> conditions = couponConditionRepository
                 .findByCouponId(coupon.getId());
         double discount = 0.0;
