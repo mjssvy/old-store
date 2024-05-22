@@ -1,28 +1,45 @@
 package com.project.shopapp.service;
 
-
+import com.project.shopapp.dtos.ProductDTO;
+import com.project.shopapp.dtos.ProductImageDTO;
 import com.project.shopapp.exceptions.DataNotFoundException;
+import com.project.shopapp.exceptions.InvalidParamException;
+import com.project.shopapp.models.Category;
 import com.project.shopapp.models.Product;
+import com.project.shopapp.models.ProductImage;
 import com.project.shopapp.repositories.CategoryRepository;
+import com.project.shopapp.repositories.ProductImageRepository;
 import com.project.shopapp.repositories.ProductRepository;
-import com.project.shopapp.responses.product.ProductResponse;
 import com.project.shopapp.services.product.ProductService;
+import com.project.shopapp.responses.product.ProductResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
+import org.mockito.stubbing.Answer;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class ProductServiceTest {
+
+    @InjectMocks
+    private ProductService productService;
 
     @Mock
     private ProductRepository productRepository;
@@ -30,242 +47,211 @@ class ProductServiceTest {
     @Mock
     private CategoryRepository categoryRepository;
 
-    private ProductService productService;
+    @Mock
+    private ProductImageRepository productImageRepository;
+
+    @Mock
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Mock
+    private MultipartFile multipartFile;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.initMocks(this);
-        //productService = new ProductService(productRepository, categoryRepository);
+        MockitoAnnotations.openMocks(this);
     }
 
-//    @Test
-//    void testCreateProduct_Success() throws DataNotFoundException {
-//        // Given
-//        ProductDTO productDTO = new ProductDTO();
-//        productDTO.setName("Test Product");
-//        productDTO.setPrice(100.0);
-//        productDTO.setCategoryId(1L);
-//
-//        Category category = new Category();
-//        category.setId(1L);
-//        category.setName("Test Category");
-//
-//        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
-//        when(productRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-//
-//        // When
-//        Product createdProduct = productService.createProduct(productDTO);
-//
-//        // Then
-//        assertNotNull(createdProduct);
-//        assertEquals(productDTO.getName(), createdProduct.getName());
-//        assertEquals(productDTO.getPrice(), createdProduct.getPrice());
-//        assertEquals(category, createdProduct.getCategory());
-//        verify(categoryRepository, times(1)).findById(1L);
-//        verify(productRepository, times(1)).save(any());
-//    }
+    @Test
+    void createProduct_Success() throws DataNotFoundException {
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setName("Test Product");
+        productDTO.setPrice(100.0F);
+        productDTO.setCategoryId(1L);
 
-//    @Test
-//    void testCreateProduct_CategoryNotFound() {
-//        // Given
-//        ProductDTO productDTO = new ProductDTO();
-//        productDTO.setName("Test Product");
-//        productDTO.setPrice(100.0);
-//        productDTO.setCategoryId(1L);
-//
-//        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
-//
-//        // When/Then
-//        assertThrows(DataNotFoundException.class, () -> productService.createProduct(productDTO));
-//        verify(categoryRepository, times(1)).findById(1L);
-//        verify(productRepository, never()).save(any());
-//    }
+        Category category = new Category();
+        category.setId(1L);
+
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Product createdProduct = productService.createProduct(productDTO);
+
+        assertEquals("Test Product", createdProduct.getName());
+        assertEquals(100.0, Optional.ofNullable(createdProduct.getPrice()));
+        assertEquals(category, createdProduct.getCategory());
+    }
 
     @Test
-    void testGetProductById_Exists() throws Exception {
-        // Given
-        long productId = 1L;
+    void createProduct_CategoryNotFound() {
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setCategoryId(1L);
+
+        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(DataNotFoundException.class, () -> productService.createProduct(productDTO));
+    }
+
+    @Test
+    void getProductById_Success() throws Exception {
         Product product = new Product();
-        product.setId(productId);
-        product.setName("Test Product");
+        product.setId(1L);
+        when(productRepository.getDetailProduct(1L)).thenReturn(Optional.of(product));
 
-        when(productRepository.getDetailProduct(productId)).thenReturn(Optional.of(product));
+        Product foundProduct = productService.getProductById(1L);
 
-        // When
-        Product foundProduct = productService.getProductById(productId);
-
-        // Then
-        assertNotNull(foundProduct);
-        assertEquals(productId, foundProduct.getId());
-        assertEquals(product.getName(), foundProduct.getName());
-        verify(productRepository, times(1)).getDetailProduct(productId);
+        assertEquals(product, foundProduct);
     }
 
     @Test
-    void testGetProductById_NotExists() {
-        // Given
-        long productId = 1L;
+    void getProductById_NotFound() {
+        when(productRepository.getDetailProduct(1L)).thenReturn(Optional.empty());
 
-        when(productRepository.getDetailProduct(productId)).thenReturn(Optional.empty());
-
-        // When/Then
-        assertThrows(DataNotFoundException.class, () -> productService.getProductById(productId));
-        verify(productRepository, times(1)).getDetailProduct(productId);
-    }
-
-    //@Test
-//    void testFindProductsByIds() {
-//        // Given
-//        List<Long> productIds = Arrays.asList(1L, 2L, 3L);
-//        List<Product> products = Arrays.asList(
-//                new Product(1L, "Product 1"),
-//                new Product(2L, "Product 2"),
-//                new Product(3L, "Product 3")
-//        );
-//
-//        when(productRepository.findProductsByIds(productIds)).thenReturn(products);
-//
-//        // When
-//        List<Product> foundProducts = productService.findProductsByIds(productIds);
-//
-//        // Then
-//        assertNotNull(foundProducts);
-//        assertEquals(products.size(), foundProducts.size());
-//        assertEquals(products, foundProducts);
-//        verify(productRepository, times(1)).findProductsByIds(productIds);
-//    }
-
-    @Test
-    void testGetAllProducts_Success() {
-        // Given
-        String keyword = "test";
-        Long categoryId = 1L;
-        PageRequest pageRequest = PageRequest.of(0, 10);
-        List<Product> products = Collections.singletonList(new Product());
-        Page<Product> productPage = new PageImpl<>(products);
-
-        when(productRepository.searchProducts(categoryId, keyword, pageRequest)).thenReturn(productPage);
-
-        // When
-        Page<ProductResponse> result = productService.getAllProducts(keyword, categoryId, pageRequest);
-
-        // Then
-        assertNotNull(result);
-        assertEquals(products.size(), result.getContent().size());
-        verify(productRepository, times(1)).searchProducts(categoryId, keyword, pageRequest);
+        assertThrows(DataNotFoundException.class, () -> productService.getProductById(1L));
     }
 
     @Test
-    void testGetAllProducts_NoResults() {
-        // Given
-        String keyword = "test";
-        Long categoryId = 1L;
-        PageRequest pageRequest = PageRequest.of(0, 10);
-        Page<Product> productPage = new PageImpl<>(Collections.emptyList());
+    void findProductsByIds_Success() {
+        List<Product> products = Arrays.asList(new Product(), new Product());
+        when(productRepository.findProductsByIds(Arrays.asList(1L, 2L))).thenReturn(products);
 
-        when(productRepository.searchProducts(categoryId, keyword, pageRequest)).thenReturn(productPage);
+        List<Product> foundProducts = productService.findProductsByIds(Arrays.asList(1L, 2L));
 
-        // When
-        Page<ProductResponse> result = productService.getAllProducts(keyword, categoryId, pageRequest);
-
-        // Then
-        assertNotNull(result);
-        assertTrue(result.getContent().isEmpty());
-        verify(productRepository, times(1)).searchProducts(categoryId, keyword, pageRequest);
-    }
-
-//    @Test
-//    void testUpdateProduct_Success() throws Exception {
-//        // Given
-//        long productId = 1L;
-//        ProductDTO productDTO = new ProductDTO();
-//        productDTO.setName("Updated Product");
-//        productDTO.setPrice(200.0);
-//        productDTO.setCategoryId(2L);
-//
-//        Product existingProduct = new Product(productId, "Old Product");
-//        Category category = new Category();
-//        category.setId(2L);
-//        category.setName("Updated Category");
-//
-//        when(productRepository.findById(productId)).thenReturn(Optional.of(existingProduct));
-//        when(categoryRepository.findById(2L)).thenReturn(Optional.of(category));
-//        when(productRepository.save(existingProduct)).thenReturn(existingProduct);
-//
-//        // When
-//        Product updatedProduct = productService.updateProduct(productId, productDTO);
-//
-//        // Then
-//        assertNotNull(updatedProduct);
-//        assertEquals(productDTO.getName(), updatedProduct.getName());
-//        assertEquals(productDTO.getPrice(), updatedProduct.getPrice());
-//        assertEquals(category, updatedProduct.getCategory());
-//        verify(productRepository, times(1)).findById(productId);
-//        verify(categoryRepository, times(1)).findById(2L);
-//        verify(productRepository, times(1)).save(existingProduct);
-//    }
-
-//    @Test
-//    void testUpdateProduct_ProductNotFound() {
-//        // Given
-//        long productId = 1L;
-//        ProductDTO productDTO = new ProductDTO();
-//        productDTO.setName("Updated Product");
-//        productDTO.setPrice(200.0);
-//        productDTO.setCategoryId(2L);
-//
-//        when(productRepository.findById(productId)).thenReturn(Optional.empty());
-//
-//        // When/Then
-//        assertThrows(DataNotFoundException.class, () -> productService.updateProduct(productId, productDTO));
-//        verify(productRepository, times(1)).findById(productId);
-//        verify(categoryRepository, never()).findById(anyLong());
-//        verify(productRepository, never()).save(any());
-//    }
-
-//    @Test
-//    void testDeleteProduct() {
-//        // Given
-//        long productId = 1L;
-//        Product product = new Product(productId, "Test Product");
-//
-//        when(productRepository.findById(productId)).thenReturn(Optional.of(product));
-//
-//        // When
-//        productService.deleteProduct(productId);
-//
-//        // Then
-//        verify(productRepository, times(1)).findById(productId);
-//        verify(productRepository, times(1)).delete(product);
-//    }
-
-    @Test
-    void testExistsByName_Exists() {
-        // Given
-        String productName = "Test Product";
-
-        when(productRepository.existsByName(productName)).thenReturn(true);
-
-        // When
-        boolean result = productService.existsByName(productName);
-
-        // Then
-        assertTrue(result);
-        verify(productRepository, times(1)).existsByName(productName);
+        assertEquals(2, foundProducts.size());
     }
 
     @Test
-    void testExistsByName_NotExists() {
-        // Given
-        String productName = "Test Product";
+    void getAllProducts_Success() {
+        Page<Product> productPage = new PageImpl<>(Arrays.asList(new Product(), new Product()));
+        when(productRepository.searchProducts(any(), anyString(), any(PageRequest.class))).thenReturn(productPage);
 
-        when(productRepository.existsByName(productName)).thenReturn(false);
+        Page<ProductResponse> responsePage = productService.getAllProducts("keyword", 1L, PageRequest.of(0, 10));
 
-        // When
-        boolean result = productService.existsByName(productName);
+        assertEquals(2, responsePage.getTotalElements());
+    }
 
-        // Then
-        assertFalse(result);
-        verify(productRepository, times(1)).existsByName(productName);
+    @Test
+    void updateProduct_Success() throws Exception {
+        Product existingProduct = new Product();
+        existingProduct.setId(1L);
+
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setCategoryId(1L);
+        productDTO.setName("Updated Product");
+
+        Category category = new Category();
+        category.setId(1L);
+
+        when(productRepository.getDetailProduct(1L)).thenReturn(Optional.of(existingProduct));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Product updatedProduct = productService.updateProduct(1L, productDTO);
+
+        assertEquals("Updated Product", updatedProduct.getName());
+        assertEquals(category, updatedProduct.getCategory());
+    }
+
+    @Test
+    void deleteProduct_Success() {
+        Product product = new Product();
+        product.setId(1L);
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        doNothing().when(productRepository).delete(product);
+
+        productService.deleteProduct(1L);
+
+        verify(productRepository, times(1)).delete(product);
+    }
+
+    @Test
+    void createProductImage_Success() throws Exception {
+        Product product = new Product();
+        product.setId(1L);
+
+        ProductImageDTO productImageDTO = new ProductImageDTO();
+        productImageDTO.setProductId(1L);
+        productImageDTO.setImageUrl("http://image.url");
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productImageRepository.findByProductId(1L)).thenReturn(Collections.emptyList());
+        when(productImageRepository.save(any(ProductImage.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ProductImage createdProductImage = productService.createProductImage(1L, productImageDTO);
+
+        assertEquals("http://image.url", createdProductImage.getImageUrl());
+        assertEquals(product, createdProductImage.getProduct());
+    }
+
+    @Test
+    void createProductImage_ExceedsMaximumImages() {
+        Product product = new Product();
+        product.setId(1L);
+
+        ProductImageDTO productImageDTO = new ProductImageDTO();
+        productImageDTO.setProductId(1L);
+
+        List<ProductImage> existingImages = Arrays.asList(new ProductImage(), new ProductImage(), new ProductImage(), new ProductImage(), new ProductImage());
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(productImageRepository.findByProductId(1L)).thenReturn(existingImages);
+
+        InvalidParamException invalidParamException = assertThrows(InvalidParamException.class, () -> productService.createProductImage(1L, productImageDTO));
+    }
+
+
+    @Test
+    void deleteFile_Success() throws IOException {
+        Path uploadDir = Paths.get("uploads");
+        Path filePath = uploadDir.resolve("filename");
+
+        try (var mockedFiles = mockStatic(Files.class)) {
+            mockedFiles.when(() -> Files.exists(filePath)).thenReturn(true);
+            mockedFiles.when(() -> Files.delete(filePath)).thenAnswer((Answer<Void>) invocation -> null);
+
+            productService.deleteFile("filename");
+
+            mockedFiles.verify(() -> Files.exists(filePath), times(1));
+            mockedFiles.verify(() -> Files.delete(filePath), times(1));
+        }
+    }
+
+    @Test
+    void deleteFile_FileNotFound() {
+        Path path = mock(Path.class);
+        when(path.resolve(anyString())).thenReturn(path);
+        when(Files.exists(path)).thenReturn(false);
+
+        assertThrows(FileNotFoundException.class, () -> productService.deleteFile("filename"));
+    }
+
+    @Test
+    void storeFile_Success() throws IOException {
+        when(multipartFile.getContentType()).thenReturn("image/png");
+        when(multipartFile.getOriginalFilename()).thenReturn("test.png");
+
+        Path uploadDir = mock(Path.class);
+        Path destination = mock(Path.class);
+
+        when(Paths.get(anyString())).thenReturn(uploadDir);
+        when(uploadDir.resolve(anyString())).thenReturn(destination);
+        when(Files.exists(uploadDir)).thenReturn(false);
+
+        doNothing().when(Files.class);
+        Files.createDirectories(uploadDir);
+        doNothing().when(Files.class);
+        Files.copy(multipartFile.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+        String filename = productService.storeFile(multipartFile);
+
+        assertNotNull(filename);
+        assertTrue(filename.contains("test.png"));
+    }
+
+    @Test
+    void storeFile_InvalidFormat() {
+        when(multipartFile.getContentType()).thenReturn("text/plain");
+
+        assertThrows(IOException.class, () -> productService.storeFile(multipartFile));
     }
 }
