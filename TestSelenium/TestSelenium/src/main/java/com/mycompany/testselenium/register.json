@@ -1,0 +1,68 @@
+{
+  "test_cases_Register": [
+    {
+      "ID": "TC_15",
+      "phone_number": "0123456780",
+      "password": "0123456789",
+      "retype-password": "0123456789",
+      "full-name":"Nguyen Thi lan",
+      "date-of-birth":"12-06-1999",
+      "address":"Quan 5"
+    },
+    {
+      "ID": "TC_30",
+      "phone_number": "0123456789",
+      "password": "12345",
+      "retype-password": "12345",
+      "full-name":"Nguyen Thi A",
+      "date-of-birth":"12-06-1999",
+      "address":"Quan 3"
+    },
+    {
+      "ID": "TC_16",
+      "phone_number": "",
+      "password": "123456789",
+      "retype-password": "123456789",
+      "full-name":"Nguyen Thi A",
+      "date-of-birth":"12-06-1999",
+      "address":"Quan 3"
+    },
+    {
+      "ID": "TC_23",
+      "phone_number": "2345678901",
+      "password": "",
+      "retype-password": "123456789",
+      "full-name":"Nguyen Thi A",
+      "date-of-birth":"12-06-1999",
+      "address":"Quan 3"
+    },
+    {
+      "ID": "TC_24",
+      "phone_number": "2345678901",
+      "password": "123456789",
+      "retype-password": "",
+      "full-name":"Nguyen Thi A",
+      "date-of-birth":"12-06-1999",
+      "address":"Quan 3"
+    },
+    {
+      "ID": "TC_25",
+      "phone_number": "2345678901",
+      "password": "123456789",
+      "retype-password": "12345678",
+      "full-name":"Nguyen Thi A",
+      "date-of-birth":"12-06-1999",
+      "address":"Quan 3"
+    },
+    {
+      "ID": "TC_21",
+      "phone_number": "23456789012",
+      "password": "123456789",
+      "retype-password": "123456789",
+      "full-name":"Nguyen Thi A",
+      "date-of-birth":"12-06-1999",
+      "address":"Quan 3"
+    }
+    
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "test_cases_order": [
+    {
+      "ID": "TC_38",
+      "fullname": "Nguyen Thi lan",
+      "email": "lan@gmail.com",
+      "phone": "0123456789",
+      "address":"Quan 3",
+       "note": "no"
+    },
+    {
+      "ID": "TC_44",
+      "fullname": "Nguyen Thi lan",
+      "email": "lan@gmail.com",
+      "phone": "",
+      "address":"Quan 3",
+      "note": "no"
+    },
+    {
+      "ID": "TC_45",
+      "fullname": "Nguyen Thi lan",
+      "email": "lan@gmail.com",
+      "phone": "123",
+      "address":"Quan 3",
+      "note": "no"
+    }
+    
+  ]
+}
+

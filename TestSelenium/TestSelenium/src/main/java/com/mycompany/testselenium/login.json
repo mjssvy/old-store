@@ -1,4 +1,44 @@
 {
-    "phone_number": "0949905590",
-    "password": "12345"
+  "test_cases_login": [
+    {
+      "name": "TC_01",
+      "phone_number": "0949905592",
+      "password": "123456789"
+    },
+    {
+      "name": "TC_014",
+      "phone_number": "",
+      "password": ""
+    },
+    {
+      "name": "TC_04",
+      "phone_number": "",
+      "password": "123456789"
+    },
+    {
+      "name": "TC_05",
+      "phone_number": "0949905592",
+      "password": ""
+    },
+    {
+      "name": "TC_02",
+      "phone_number": "0949905592",
+      "password": "123"
+    },
+    {
+      "name": "TC_03",
+      "phone_number": "0909090909",
+      "password": "123456789"
+    },
+    {
+      "name": "TC_13",
+      "phone_number": "2090909090",
+      "password": "123"
+    },
+    {
+      "name": "TC_07",
+      "phone_number": "123090909090",
+      "password": "123"
+    }
+  ]
 }
