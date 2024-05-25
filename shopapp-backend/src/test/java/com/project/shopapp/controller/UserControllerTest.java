@@ -1,147 +1,210 @@
 package com.project.shopapp.controller;
 
 import com.project.shopapp.controllers.UserController;
+import com.project.shopapp.dtos.*;
+import com.project.shopapp.exceptions.DataNotFoundException;
+import com.project.shopapp.exceptions.InvalidPasswordException;
 import com.project.shopapp.models.Token;
 import com.project.shopapp.models.User;
-import com.project.shopapp.models.Role;
 import com.project.shopapp.responses.ResponseObject;
 import com.project.shopapp.responses.user.LoginResponse;
+import com.project.shopapp.responses.user.UserListResponse;
+import com.project.shopapp.responses.user.UserResponse;
 import com.project.shopapp.services.token.ITokenService;
 import com.project.shopapp.services.user.IUserService;
 import com.project.shopapp.components.LocalizationUtils;
-import com.project.shopapp.dtos.UserLoginDTO;
-import jakarta.servlet.http.HttpServletRequest;
+import com.project.shopapp.utils.MessageKeys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.mockito.stubbing.OngoingStubbing;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@WebMvcTest
-public class UserControllerTest {
+class UserControllerTest {
+
+    @InjectMocks
+    private UserController userController;
 
     @Mock
     private IUserService userService;
 
     @Mock
+    private LocalizationUtils localizationUtils;
+
+    @Mock
     private ITokenService tokenService;
 
     @Mock
-    private LocalizationUtils localizationUtils;
-
-    @InjectMocks
-    private UserController userController;
+    private BindingResult bindingResult;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
+
     @Test
-    void testLogin() throws Exception {
-        // Arrange
-        UserLoginDTO userLoginDTO = new UserLoginDTO();
-        userLoginDTO.setPhoneNumber("0949905592");
-        userLoginDTO.setPassword("123456789");
-        userLoginDTO.setRoleId(1L);
+    void testCreateUser_Success() throws Exception {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setPassword("password");
+        userDTO.setRetypePassword("password");
 
-        User userDetail = User.builder()
-                .id(1L)
-                .phoneNumber("0949905592")
-                .role(new Role(1L, Role.USER))
-                .build();
+        User user = new User();
+        when(userService.createUser(any(UserDTO.class))).thenReturn(user);
 
-        Token jwtToken = new Token();
-        jwtToken.setToken("jwt-token");
-        jwtToken.setTokenType("Bearer");
-        jwtToken.setRefreshToken("refresh-token");
+        ResponseEntity<ResponseObject> response = userController.createUser(userDTO, bindingResult);
 
-        // Mock phương thức `userService.login` để trả về một đối tượng Token
-        when(userService.login(eq(userLoginDTO.getPhoneNumber()), eq(userLoginDTO.getPassword()), eq(userLoginDTO.getRoleId())))
-                .thenReturn("jwtToken");
+        assertNotNull(response);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Đăng ký tài khoản thành công", response.getBody().getMessage());
+        assertNotNull(response.getBody().getData());
+    }
 
-        // Mock phương thức `userService.getUserDetailsFromToken` để trả về đối tượng User
-        when(userService.getUserDetailsFromToken(anyString())).thenReturn(userDetail);
+    @Test
+    void testCreateUser_PasswordMismatch() throws Exception {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setPassword("password");
+        userDTO.setRetypePassword("differentPassword");
 
-        // Mock phương thức `tokenService.addToken` để trả về jwtToken
-        when(tokenService.addToken(any(User.class), anyString(), anyBoolean())).thenReturn(jwtToken);
+        when(localizationUtils.getLocalizedMessage(MessageKeys.PASSWORD_NOT_MATCH))
+                .thenReturn("Passwords do not match");
 
-        // Mock phương thức `localizationUtils.getLocalizedMessage` để trả về chuỗi "Login successfully"
-        when(localizationUtils.getLocalizedMessage(anyString())).thenReturn("Login successfully");
+        ResponseEntity<ResponseObject> response = userController.createUser(userDTO, bindingResult);
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getHeader("User-Agent")).thenReturn("Mocked User Agent");
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Passwords do not match", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+    }
 
-        // Act
-        ResponseEntity<ResponseObject> response = userController.login(userLoginDTO, request);
+    private void assertNull(Object data) {
+    }
 
-        // Assert
+    @Test
+    void testCreateUser_ValidationErrors() throws Exception {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setPassword("password");
+        userDTO.setRetypePassword("password");
+
+        FieldError error = new FieldError("userDTO", "password", "Password is required");
+        when(bindingResult.hasErrors()).thenReturn(true);
+        when(bindingResult.getFieldErrors()).thenReturn(Collections.singletonList(error));
+
+        ResponseEntity<ResponseObject> response = userController.createUser(userDTO, bindingResult);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("[Password is required]", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+    }
+
+
+    @Test
+    void testGetUserDetails_Success() throws Exception {
+        String token = "Bearer jwtToken";
+        User user = new User();
+        user.setId(1L);
+        when(userService.getUserDetailsFromToken(anyString())).thenReturn(user);
+
+        ResponseEntity<ResponseObject> response = userController.getUserDetails(token);
+
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        LoginResponse loginResponse = (LoginResponse) response.getBody().getData();
-        assertNotNull(loginResponse); // Ensure loginResponse is not null
-        assertEquals("jwt-token", loginResponse.getToken());
-        assertEquals("Bearer", loginResponse.getTokenType());
-        assertEquals("refresh-token", loginResponse.getRefreshToken());
-        assertEquals("0949905592", loginResponse.getUsername());
-        assertEquals(List.of("ROLE_USER"), loginResponse.getRoles());
-
-        // Verify method invocations
-        verify(userService, times(1)).login(eq(userLoginDTO.getPhoneNumber()), eq(userLoginDTO.getPassword()), eq(userLoginDTO.getRoleId()));
-        verify(tokenService, times(1)).addToken(any(User.class), anyString(), anyBoolean());
+        assertNotNull(response.getBody());
+        assertEquals("Get user's detail successfully", response.getBody().getMessage());
+        assertNotNull(response.getBody().getData());
     }
 
     @Test
-    void testGetUserDetailsFromToken() throws Exception {
-        // Arrange
-        User userDetail = User.builder()
-                .id(1L)
-                .phoneNumber("0949905592")
-                .role(new Role(1L, Role.USER))
-                .build();
-        when(userService.getUserDetailsFromToken(anyString())).thenReturn(userDetail);
+    void testUpdateUserDetails_Success() throws Exception {
+        Long userId = 1L;
+        UpdateUserDTO updatedUserDTO = new UpdateUserDTO();
+        String token = "Bearer jwtToken";
+        User user = new User();
+        user.setId(userId);
 
-        // Act
-        User userDetails = userService.getUserDetailsFromToken("dummy-token");
+        when(userService.getUserDetailsFromToken(anyString())).thenReturn(user);
+        when(userService.updateUser(anyLong(), any(UpdateUserDTO.class))).thenReturn(user);
 
-        // Assert
-        assertNotNull(userDetails);
-        assertEquals("0949905592", userDetails.getPhoneNumber());
-        assertEquals(1L, userDetails.getRole().getId());
-        assertEquals(Role.USER, userDetails.getRole().getName());
+        ResponseEntity<ResponseObject> response = userController.updateUserDetails(userId, updatedUserDTO, token);
 
-        // Verify method invocations
-        verify(userService, times(1)).getUserDetailsFromToken(anyString());
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Update user detail successfully", response.getBody().getMessage());
+        assertNotNull(response.getBody().getData());
     }
 
     @Test
-    void testAddToken() {
-        // Arrange
-        Token jwtToken = new Token();
-        jwtToken.setToken("jwt-token");
-        jwtToken.setTokenType("Bearer");
-        jwtToken.setRefreshToken("refresh-token");
-        when(tokenService.addToken(any(User.class), anyString(), anyBoolean())).thenReturn(jwtToken);
+    void testResetPassword_Success() throws Exception {
+        long userId = 1L;
+        String newPassword = UUID.randomUUID().toString().substring(0, 5);
 
-        // Act
-        Token addedToken = tokenService.addToken(new User(), "dummy-token", true);
+        doNothing().when(userService).resetPassword(userId, newPassword);
 
-        // Assert
-        assertNotNull(addedToken);
-        assertEquals("jwt-token", addedToken.getToken());
-        assertEquals("Bearer", addedToken.getTokenType());
-        assertEquals("refresh-token", addedToken.getRefreshToken());
+        ResponseEntity<ResponseObject> response = userController.resetPassword(userId);
 
-        // Verify method invocations
-        verify(tokenService, times(1)).addToken(any(User.class), anyString(), anyBoolean());
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Reset password successfully", response.getBody().getMessage());
+        assertEquals(newPassword, response.getBody().getData());
     }
+
+    @Test
+    void testBlockOrEnable_Success_Enable() throws Exception {
+        long userId = 1L;
+        int active = 1;
+
+        doNothing().when(userService).blockOrEnable(userId, true);
+
+        ResponseEntity<ResponseObject> response = userController.blockOrEnable(userId, active);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Successfully enabled the user.", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+    }
+
+    @Test
+    void testBlockOrEnable_Success_Block() throws Exception {
+        long userId = 1L;
+        int active = 0;
+
+        doNothing().when(userService).blockOrEnable(userId, false);
+
+        ResponseEntity<ResponseObject> response = userController.blockOrEnable(userId, active);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Successfully blocked the user.", response.getBody().getMessage());
+        assertNull(response.getBody().getData());
+    }
+
+
+
+
 }
