@@ -139,6 +139,39 @@ public class JSONReadRegister {
         String address = (String) testCase.get("address");
         register(phoneNumber, password, retypePassword, fullName, dateOfBirth, address);
     }
+    @Test
+    public void test121_register_with_invaid_phonenumber() throws IOException, ParseException {
+        JSONObject testCase = getTestCaseData(7);
+        String phoneNumber = (String) testCase.get("phone_number");
+        String password = (String) testCase.get("password");
+        String retypePassword = (String) testCase.get("retype-password");
+        String fullName = (String) testCase.get("full-name");
+        String dateOfBirth = (String) testCase.get("date-of-birth");
+        String address = (String) testCase.get("address");
+        register(phoneNumber, password, retypePassword, fullName, dateOfBirth, address);
+    }
+    @Test
+    public void test121_register_with_invaid_phonenumber() throws IOException, ParseException {
+        JSONObject testCase = getTestCaseData(8);
+        String phoneNumber = (String) testCase.get("phone_number");
+        String password = (String) testCase.get("password");
+        String retypePassword = (String) testCase.get("retype-password");
+        String fullName = (String) testCase.get("full-name");
+        String dateOfBirth = (String) testCase.get("date-of-birth");
+        String address = (String) testCase.get("address");
+        register(phoneNumber, password, retypePassword, fullName, dateOfBirth, address);
+    }
+    @Test
+    public void test121_register_with_invaid_phonenumber() throws IOException, ParseException {
+        JSONObject testCase = getTestCaseData(9);
+        String phoneNumber = (String) testCase.get("phone_number");
+        String password = (String) testCase.get("password");
+        String retypePassword = (String) testCase.get("retype-password");
+        String fullName = (String) testCase.get("full-name");
+        String dateOfBirth = (String) testCase.get("date-of-birth");
+        String address = (String) testCase.get("address");
+        register(phoneNumber, password, retypePassword, fullName, dateOfBirth, address);
+    }
     
 
     public static void main(String[] args) {
