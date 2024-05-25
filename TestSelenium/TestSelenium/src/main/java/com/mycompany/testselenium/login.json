@@ -32,12 +32,22 @@
     },
     {
       "name": "TC_13",
-      "phone_number": "2090909090",
-      "password": "123"
+      "phone_number": "01",
+      "password": "pass123"
     },
     {
       "name": "TC_07",
       "phone_number": "123090909090",
+      "password": "123"
+    }
+    {
+      "name": "TC_017",
+      "phone_number": "1230909090",
+      "password": "@1"
+    }
+    {
+      "name": "TC_015",
+      "phone_number": "1230909090",
       "password": "123"
     }
   ]
