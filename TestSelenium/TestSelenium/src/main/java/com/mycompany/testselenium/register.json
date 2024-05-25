@@ -63,6 +63,32 @@
       "date-of-birth":"12-06-1999",
       "address":"Quan 3"
     }
-    
+    {
+      "ID": "TC_22",
+      "phone_number": "23456789012",
+      "password": "123456789",
+      "retype-password": "123456789",
+      "full-name":"Nguyen Thi A",
+      "date-of-birth":"",
+      "address":"Quan 3"
+    }
+    {
+      "ID": "TC_23",
+      "phone_number": "23456789012",
+      "password": "123456789",
+      "retype-password": "123456789",
+      "full-name":"",
+      "date-of-birth":"12-06-1999",
+      "address":"Quan 3"
+    }
+    {
+      "ID": "TC_24",
+      "phone_number": "23456789012",
+      "password": "123456789",
+      "retype-password": "",
+      "full-name":"Nguyen Thi A",
+      "date-of-birth":"12-06-1999",
+      "address":"Quan 3"
+    }
   ]
 }
