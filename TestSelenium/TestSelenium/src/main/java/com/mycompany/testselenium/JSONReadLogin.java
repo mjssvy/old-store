@@ -140,6 +140,22 @@ public class JSONReadLogin {
         login(phone_number, password);
         
     }
+    @Test
+    public void test7_login_with_invalid_phone() throws IOException, ParseException {
+        JSONObject testCase = getTestCaseData(8);
+        String phone_number = (String) testCase.get("phone_number");
+        String password = (String) testCase.get("password");
+        login(phone_number, password);
+        
+    }
+    @Test
+    public void test7_login_with_invalid_phone() throws IOException, ParseException {
+        JSONObject testCase = getTestCaseData(9);
+        String phone_number = (String) testCase.get("phone_number");
+        String password = (String) testCase.get("password");
+        login(phone_number, password);
+        
+    }
 
     public static void main(String[] args) {
         io.github.bonigarcia.wdm.WebDriverManager.chromedriver().setup();
